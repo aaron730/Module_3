@@ -1,38 +1,52 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Valve.VR.InteractionSystem;
 
-public class answer_phone : MonoBehaviour
+namespace Valve.VR.InteractionSystem.Sample
 {
-    // Start is called before the first frame update
-
-    public AudioSource ringTone;
-    public AudioSource phoneCall;
-
-    private UnityEngine.Vector3 originalPostion;
-    private bool hasAnswered = false;
-
-    void Start()
+    public class answer_phone : MonoBehaviour
     {
-        originalPostion = GameObject.Find("phone2k").transform.position;
-        ringTone.loop = true;
-        ringTone.Play(0);
-    }
+        // Start is called before the first frame update
 
-    // Update is called once per frame
-    void Update()
-    {
-       var newPostion = GameObject.Find("phone2k").transform.position;
-        if(newPostion != originalPostion && hasAnswered == false)
+        public SteamVR_Action_Boolean jumpAction = SteamVR_Input.GetAction<SteamVR_Action_Boolean>("platformer", "Jump");
+
+        public Renderer jumpHighlight;
+        private bool jump;
+        private SteamVR_Input_Sources hand;
+        private Interactable interactable;
+        public AudioSource ringTone;
+        public AudioSource phoneCall;
+
+        private UnityEngine.Vector3 originalPostion;
+        private bool hasAnswered = false;
+
+        void Start()
         {
-            ringTone.loop = false;
-            ringTone.Stop();
-            phoneCall.loop = true;
-            phoneCall.Play(0);
-            hasAnswered = true; 
+            interactable = GetComponent<Interactable>();
         }
 
-    }
+        // Update is called once per frame
+        void Update()
+        {
+            if (interactable.attachedToHand)
+            {
+                hand = interactable.attachedToHand.handType;
+                jump = jumpAction[hand].stateDown;
+                if (jump && hasAnswered == false)
+                {
+                    ringTone.Stop();
+                    phoneCall.Play(0);
+                    hasAnswered = true;
+                    Invoke("End", 110f);
+                }
+            }
+        }
 
+        void End()
+        {
+            Application.Quit();
+        }
+    }
 }
 
